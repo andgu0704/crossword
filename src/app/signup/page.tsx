@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,11 +19,25 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", { email, password, redirect: false });
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
 
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? "მოხდა შეცდომა");
+      setLoading(false);
+      return;
+    }
+
+    // Auto-login after signup
+    const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
+
     if (result?.error) {
-      setError("ელ-ფოსტა ან პაროლი არასწორია");
+      router.push("/login");
     } else {
       router.push("/puzzles");
       router.refresh();
@@ -34,11 +49,25 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 w-full max-w-sm shadow-sm">
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">✦</div>
-          <h1 className="text-2xl font-bold text-gray-900">შესვლა</h1>
-          <p className="text-gray-500 text-sm mt-1">კვესტვორდში კი შედი</p>
+          <h1 className="text-2xl font-bold text-gray-900">რეგისტრაცია</h1>
+          <p className="text-gray-500 text-sm mt-1">შექმენი ანგარიში</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              სახელი
+            </label>
+            <input
+              type="text"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+              placeholder="შენი სახელი"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               ელ-ფოსტა
@@ -56,12 +85,14 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              პაროლი
+              პაროლი{" "}
+              <span className="text-gray-400 font-normal">(მინ. 6 სიმბოლო)</span>
             </label>
             <input
               type="password"
               required
-              autoComplete="current-password"
+              minLength={6}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
@@ -74,14 +105,14 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" size="md" className="w-full mt-1" disabled={loading}>
-            {loading ? "შესვლა..." : "შესვლა"}
+            {loading ? "მიმდინარეობს..." : "რეგისტრაცია"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-5">
-          ანგარიში არ გაქვს?{" "}
-          <Link href="/signup" className="text-amber-700 font-semibold hover:underline">
-            დარეგისტრირდი
+          უკვე გაქვს ანგარიში?{" "}
+          <Link href="/login" className="text-amber-700 font-semibold hover:underline">
+            შედი
           </Link>
         </p>
       </div>

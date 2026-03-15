@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
+import { SignOutButton } from "./SignOutButton";
 
 export async function Navbar() {
   const session = await auth();
@@ -24,21 +25,17 @@ export async function Navbar() {
                   რეიტინგი
                 </Button>
               </Link>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut({ redirectTo: "/" });
-                }}
-              >
-                <Button variant="secondary" size="sm" type="submit">
-                  გასვლა
-                </Button>
-              </form>
+              <SignOutButton />
             </>
           ) : (
-            <Link href="/login">
-              <Button size="sm">შესვლა</Button>
-            </Link>
+            <>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">შესვლა</Button>
+              </Link>
+              <Link href="/signup">
+                <Button size="sm">რეგისტრაცია</Button>
+              </Link>
+            </>
           )}
         </div>
       </nav>
